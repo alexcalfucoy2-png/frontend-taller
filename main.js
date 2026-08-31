@@ -1,60 +1,110 @@
 const API_URL = "http://127.0.0.1:8000";
 
 
-// Mostrar usuarios
+// Cargar usuarios
 async function cargarUsuarios() {
 
-    const respuesta = await fetch(API_URL + "/usuarios");
+    const contenedor = document.querySelector("#lista-usuarios");
 
-    const usuarios = await respuesta.json();
+    contenedor.innerHTML = "<li>Cargando...</li>";
 
-    const lista = document.querySelector("#lista-usuarios");
+    try {
 
-    lista.innerHTML = "";
+        const respuesta = await fetch(`${API_URL}/usuarios`);
 
-    usuarios.forEach(function(usuario) {
+        if (!respuesta.ok) {
+            throw new Error(`Error ${respuesta.status}`);
+        }
 
-        lista.innerHTML += `
-            <li>
-                ${usuario.nombre} - ${usuario.email}
-            </li>
-        `;
+        const usuarios = await respuesta.json();
 
-    });
+        renderizarUsuarios(usuarios);
+
+    } catch (error) {
+
+        contenedor.innerHTML =
+            "<li>No se pudo conectar con el servidor.</li>";
+
+        console.error(error);
+    }
+}
+
+
+// Mostrar usuarios
+function renderizarUsuarios(usuarios) {
+
+    const contenedor = document.querySelector("#lista-usuarios");
+
+    contenedor.innerHTML = usuarios
+        .map((u, indice) =>
+            `<li>
+                ${u.nombre} — ${u.email}
+                <button onclick="eliminarUsuario(${indice})">
+                    Eliminar
+                </button>
+            </li>`
+        )
+        .join("");
 }
 
 
 // Crear usuario
-document.querySelector("#form-usuario").addEventListener("submit", async function(evento) {
+document
+    .querySelector("#form-usuario")
+    .addEventListener("submit", async (evento) => {
 
-    evento.preventDefault();
+        evento.preventDefault();
 
-    const nombre = document.querySelector("#nombre").value;
-    const email = document.querySelector("#email").value;
+        const nombre = document.querySelector("#nombre").value;
+        const email = document.querySelector("#email").value;
 
-    await fetch(API_URL + "/usuarios", {
+        // Validar campos
+        if (nombre == "" || email == "") {
 
-        method: "POST",
+            document.querySelector("#mensaje").textContent =
+                "Completá todos los campos";
 
-        headers: {
-            "Content-Type": "application/json"
-        },
+            return;
+        }
 
-        body: JSON.stringify({
+        const nuevoUsuario = {
             nombre: nombre,
             email: email
-        })
+        };
 
+        await fetch(`${API_URL}/usuarios`, {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify(nuevoUsuario)
+        });
+
+        document.querySelector("#mensaje").textContent =
+            "Usuario creado correctamente";
+
+        evento.target.reset();
+
+        cargarUsuarios();
     });
 
-    alert("Usuario agregado");
 
-    document.querySelector("#form-usuario").reset();
+// Eliminar usuario
+async function eliminarUsuario(indice) {
+
+    await fetch(`${API_URL}/usuarios/${indice}`, {
+        method: "DELETE"
+    });
+
+    document.querySelector("#mensaje").textContent =
+        "Usuario eliminado correctamente";
 
     cargarUsuarios();
+}
 
-});
 
-
-// Cargar usuarios al abrir
+// Cargar usuarios al iniciar
 cargarUsuarios();

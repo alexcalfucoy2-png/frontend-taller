@@ -7,7 +7,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 usuarios = []
@@ -22,3 +22,9 @@ def obtener_usuarios():
 def crear_usuario(usuario: dict):
     usuarios.append(usuario)
     return usuario
+
+
+@app.delete("/usuarios/{indice}")
+def eliminar_usuario(indice: int):
+    usuarios.pop(indice)
+    return {"mensaje": "Usuario eliminado"}
