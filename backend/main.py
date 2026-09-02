@@ -1,20 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pymongo import MongoClient
+from dotenv import load_dotenv
+import os
 
-# Backend y API: parte que funciona detrás de la página.
-# Recibe y devuelve los datos del frontend.
-# Está hecha con Python y FastAPI.
+# Cargamos las variables
+load_dotenv()
 
-#Frontend: parte que ve y usa el usuario.
-#Está hecho con HTML, CSS y JavaScript.
-#JavaScript se comunica con la API para obtener,
-#crear y eliminar usuarios.
-
-# ===== API ======
-# Creamos nuestra API usando FastAPI
+# Creamos la API
 app = FastAPI()
 
-# Permite que el frontend se conecte con la API
+# Permitimos conectar el frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,26 +18,52 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ===== MONGODB =====
 
-# Lista donde guardamos los usuarios
-usuarios = []
+# Conectamos con MongoDB
+cliente = MongoClient(os.getenv("MONGO_URL"))
 
+# Base de datos
+db = cliente["mi_base"]
+
+# Colección de usuarios
+usuarios = db["usuarios"]
+
+
+# ===== RUTAS =====
 
 # GET: obtener usuarios
 @app.get("/usuarios")
 def obtener_usuarios():
-    return usuarios
+
+    lista = []
+
+    for usuario in usuarios.find():
+        usuario["_id"] = str(usuario["_id"])
+        lista.append(usuario)
+
+    return lista
 
 
 # POST: crear usuario
 @app.post("/usuarios")
 def crear_usuario(usuario: dict):
-    usuarios.append(usuario)
+
+    resultado = usuarios.insert_one(usuario)
+
+    usuario["_id"] = str(resultado.inserted_id)
+
     return usuario
 
 
 # DELETE: eliminar usuario
-@app.delete("/usuarios/{indice}")
-def eliminar_usuario(indice: int):
-    usuarios.pop(indice)
+@app.delete("/usuarios/{id}")
+def eliminar_usuario(id: str):
+
+    from bson import ObjectId
+
+    usuarios.delete_one({
+        "_id": ObjectId(id)
+    })
+
     return {"mensaje": "Usuario eliminado"}
