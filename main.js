@@ -1,7 +1,8 @@
+// Dirección de nuestra API
 const API_URL = "http://127.0.0.1:8000";
 
 
-// Cargar usuarios
+// Cargar usuarios desde la API
 async function cargarUsuarios() {
 
     const contenedor = document.querySelector("#lista-usuarios");
@@ -10,12 +11,14 @@ async function cargarUsuarios() {
 
     try {
 
+        // GET: pide los usuarios a la API
         const respuesta = await fetch(`${API_URL}/usuarios`);
 
         if (!respuesta.ok) {
             throw new Error(`Error ${respuesta.status}`);
         }
 
+        // Convertimos la respuesta a JSON
         const usuarios = await respuesta.json();
 
         renderizarUsuarios(usuarios);
@@ -30,7 +33,7 @@ async function cargarUsuarios() {
 }
 
 
-// Mostrar usuarios
+// Mostrar usuarios en la página
 function renderizarUsuarios(usuarios) {
 
     const contenedor = document.querySelector("#lista-usuarios");
@@ -58,7 +61,7 @@ document
         const nombre = document.querySelector("#nombre").value;
         const email = document.querySelector("#email").value;
 
-        // Validar campos
+        // Validamos que no estén vacíos
         if (nombre == "" || email == "") {
 
             document.querySelector("#mensaje").textContent =
@@ -67,11 +70,13 @@ document
             return;
         }
 
+        // Datos del nuevo usuario
         const nuevoUsuario = {
             nombre: nombre,
             email: email
         };
 
+        // POST: enviamos el usuario a la API
         await fetch(`${API_URL}/usuarios`, {
 
             method: "POST",
@@ -95,6 +100,7 @@ document
 // Eliminar usuario
 async function eliminarUsuario(indice) {
 
+    // DELETE: elimina un usuario de la API
     await fetch(`${API_URL}/usuarios/${indice}`, {
         method: "DELETE"
     });
@@ -106,5 +112,5 @@ async function eliminarUsuario(indice) {
 }
 
 
-// Cargar usuarios al iniciar
+// Carga los usuarios cuando abrimos la página
 cargarUsuarios();
