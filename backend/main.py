@@ -1,10 +1,18 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# ================= API =================
+# Backend y API: parte que funciona detrás de la página.
+# Recibe y devuelve los datos del frontend.
+# Está hecha con Python y FastAPI.
+
+#Frontend: parte que ve y usa el usuario.
+#Está hecho con HTML, CSS y JavaScript.
+#JavaScript se comunica con la API para obtener,
+#crear y eliminar usuarios.
+
+# ===== API ======
 # Creamos nuestra API usando FastAPI
 app = FastAPI()
-
 
 # Permite que el frontend se conecte con la API
 app.add_middleware(
